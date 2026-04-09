@@ -1,20 +1,27 @@
 <?php
 session_start();
+include('config/db.php');
+
+// --- DEBUG MODE (Set to false when you go live) ---
+$debug = false; 
+if ($debug) {
+    $_SESSION['user_id'] = 1;
+    $_SESSION['user_name'] = "Yash";
+    $_SESSION['role'] = "Admin";
+}
+// ------------------------------------------------
+
+// 1. Absolute Security Check
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
-    header("Location: login.php");
+    header("Location: login.php?error=unauthorized");
     exit();
 }
 
-include('config/db.php');
-
-// Security Bypass for testing (Remove these 4 lines once login is stable)
-$_SESSION['user_id'] = 1; 
-$_SESSION['user_name'] = "Yash"; 
-$_SESSION['role'] = "Admin";
-
-$user_name = $_SESSION['user_name'] ?? 'User';
-$user_role = $_SESSION['role'] ?? 'Admin';
+// 2. Variable Assignment
+$user_name = $_SESSION['user_name'];
+$user_role = $_SESSION['role'];
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

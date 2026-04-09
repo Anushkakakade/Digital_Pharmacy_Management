@@ -7,7 +7,38 @@ if (isset($_POST['login'])) {
     $email = mysqli_real_escape_string($conn, $_POST['email']);
     $password = mysqli_real_escape_string($conn, $_POST['password']);
 
-    $query = "SELECT * FROM users WHERE email='$email' AND password='$password'";
+    $query = "SELECT * FROM users WHERE email='$email' LIMIT 1";
+$result = mysqli_query($conn, $query);
+
+if (mysqli_num_rows($result) == 1) {
+
+    $user = mysqli_fetch_assoc($result);
+
+    // 🔥 THIS IS THE MAIN FIX
+    if (password_verify($password, $user['password'])) {
+
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_name'] = $user['name'];
+        $_SESSION['role'] = $user['role'];
+
+        // Role-based redirect
+        if ($user['role'] == 'admin') {
+            header("Location: admin/dashboard.php");
+        } elseif ($user['role'] == 'pharmacist') {
+            header("Location: pharmacist/dashboard.php");
+        } else {
+            header("Location: customer_home.php");
+        }
+
+        exit();
+
+    } else {
+        $error_msg = "Invalid Password!";
+    }
+
+} else {
+    $error_msg = "User not found!";
+}
     $result = mysqli_query($conn, $query);
 
     if (mysqli_num_rows($result) == 1) {
