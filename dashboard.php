@@ -1,5 +1,10 @@
 <?php
 session_start();
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'Admin') {
+    header("Location: login.php");
+    exit();
+}
+
 include('config/db.php');
 
 // Security Bypass for testing (Remove these 4 lines once login is stable)

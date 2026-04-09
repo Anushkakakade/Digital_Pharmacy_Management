@@ -1,170 +1,145 @@
 <?php
 session_start();
-include('config/db.php'); // Ensure this file exists with your MySQL password
-
-$error_msg = "";
-if (isset($_POST['login'])) {
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $password = mysqli_real_escape_string($conn, $_POST['password']);
-
-    // Checking for the user
-    $query = "SELECT * FROM users WHERE email='$email' AND password='$password'";
-    $result = mysqli_query($conn, $query);
-
-    if (mysqli_num_rows($result) == 1) {
-        $user = mysqli_fetch_assoc($result);
-        
-        // Start sessions for the new attractive dashboard
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_name'] = $user['name'];
-        header("Location: customer_home.php");
-        exit();
-    } else {
-        $error_msg = "Incorrect Email or Password!";
-    }
-}
+include('config/db.php'); // Ensure your DB connection is working
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-PHARMA Portal | Secure Login</title>
+    <title>E-Pharma | Healthcare at Your Doorstep</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     
     <style>
-        :root { --primary-green: #2d6a4f; --dark-green: #1b4332; }
-        
-        body {
-            /* REPLACED BLACK: Light blue-to-white gradient for 'digital' feel */
-            background: linear-gradient(135deg, #e9f0fe 0%, #ffffff 100%);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            color: #1a202c;
-        }
+        :root { --brand-green: #107252; --soft-bg: #f8f9fa; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--soft-bg); }
 
-        /* Centered Login Card */
-        .login-card {
-            background: #ffffff;
-            padding: 50px 45px;
-            border-radius: 25px; /* Softer rounded corners */
-            width: 100%;
-            max-width: 480px;
-            box-shadow: 0 15px 50px rgba(16, 114, 82, 0.08); /* Soft green-tinted shadow */
-            text-align: center;
-            border: 1px solid rgba(16, 114, 82, 0.1);
-        }
+        /* Navigation Style */
+        .navbar { background: white; border-bottom: 1px solid #eee; padding: 15px 0; }
+        .nav-link { font-weight: 600; color: #444 !important; font-size: 0.9rem; margin: 0 10px; }
 
-        /* ADDED IN AVATAR SPACE: Medical Flask & Cross Icon */
-        .avatar-box {
-            width: 90px; height: 90px;
-            background-color: #dce7ff;
-            border-radius: 50%;
-            margin: 0 auto 30px;
-            display: flex; align-items: center; justify-content: center;
-            border: 3px solid #f0f4ff;
-        }
-        .avatar-box img {
-            width: 55%;
-            opacity: 0.9;
-        }
-
-        .login-title {
-            color: var(--primary-green); /* Matching your reference */
-            font-weight: 700;
-            margin-bottom: 5px;
-            font-size: 2.2rem;
-        }
-        .subtitle {
-            color: #718096;
-            font-size: 0.95rem;
+        /* Hero Banner */
+        .hero-banner { 
+            background: linear-gradient(90deg, #134e4a 0%, #107252 100%); 
+            color: white; padding: 60px 0; border-radius: 0 0 40px 40px; 
             margin-bottom: 40px;
         }
-
-        /* Input Styling */
-        .form-control {
-            background-color: #e9f0fe; 
-            border: 1px solid #dce7ff;
-            padding: 16px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-size: 1rem;
-            color: #1a202c;
-        }
-        .form-control:focus {
-            background-color: #ffffff;
-            border-color: #40916c;
-            box-shadow: 0 0 0 3px rgba(64, 145, 108, 0.1);
-            outline: none;
+        .search-box { 
+            background: white; border-radius: 12px; padding: 10px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 20px;
         }
 
-        /* Professional Green Button */
-        .btn-login {
-            background-color: #40916c; 
-            border: none;
-            color: white;
-            padding: 16px;
-            width: 100%;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            transition: 0.3s ease;
-            margin-top: 10px;
+        /* Quick Service Cards */
+        .service-card {
+            background: white; border: 1px solid #edf2f7; border-radius: 20px;
+            padding: 25px; transition: 0.3s ease; height: 100%;
+            text-decoration: none; display: block; color: inherit;
         }
-        .btn-login:hover {
-            background-color: #2d6a4f;
-            transform: translateY(-2px);
-            color: white;
+        .service-card:hover { transform: translateY(-5px); border-color: var(--brand-green); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .icon-box { 
+            width: 60px; height: 60px; border-radius: 15px; 
+            display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 15px;
         }
 
-        .footer-text {
-            text-align: center;
-            margin-top: 30px;
-            color: #718096;
-            font-size: 0.9rem;
+        /* Category Grid */
+        .cat-item {
+            background: white; border-radius: 12px; padding: 20px; border: 1px solid #eee;
+            text-align: left; transition: 0.2s;
         }
-        .footer-text a {
-            color: #40916c;
-            text-decoration: none;
-            font-weight: 700;
-        }
+        .cat-item:hover { background: #e6f4f1; }
+
+        .section-title { font-weight: 700; color: #1a202c; margin-bottom: 25px; }
     </style>
 </head>
 <body>
 
-<div class="login-card">
-    <div class="avatar-box shadow-inner">
-        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODUgNDg1IiBmaWxsPSIjNDQ0Ij48cGF0aCBkPSJNMjQyLjUgOTBhNzUuMSA3NS4xIDAgMSA0NDUgNDQgNDQuNS00NC41LTQ0LjUtNzUuMS03NS4xaC03NS4xaC03NS4xSDI0Mi41djQ0LjV6bTAtNTQuNWExMzAgMTMwIDAgMSA0NDQgNCA0NC41LTQ0LjUtNDQuNS0xMjkuNjk5LTEyOS42OTljLTc1LjEtNzUuMUgyNDI.nY0NC41ek0yNDIuNSAxNjVhMTE4LjcgMTE4LjcgMCAxIDUzMy41IDI4LjcgNDQuNS00NC41LTQ0LjUtMTE4LjctMTE4LjdIMjQyLjV2NDQuNXptMCA4OS45YTU4IDU4IDAgMSA4ODkgNCA0NC41LTQ0LjUtNDQuNS05OC45LTk4LjljLTc1LjEtNzUuMUgyNDIuNnY0NC41ek00NjguMSA0MTNhMTEuNSAxMS41IDAgMCAxLTUuNiAyMy4yTDQwMC41IDQ2NWwtNjcuNSA2Ny41YTEwLjY5OSAxMC42OTkgMCAwIDE tMjMuMkw0MTMuMUgzNTYuNGMtNDMuMS00My4xLTgyLjctODUuMy0xMjEtMTI3LjEtMzkuMyA0My4xLTgyLjctODYuMS0xMjcuMSAxMjcuMUg3MS42YTEwLjY5OSAxMC42OTkgMCAwIDE tMjMuMkwxMTQuOSA0NjVMMTIuOSA0MTNhMTEuNSAxMS41IDAgMCAxIDUuNiAyMy4yTDg0LjUgMzI0LjNjNDUuOCAzMyA5Mi4xIDY1IDEzOS40IDk3LjdWNDc1LjljMCAxOS42IDE1LjkgMzUuNSAzNS41IDM1LjVoMjE1YzE5LjYgMCAzNS41LTE1LjkgMzUuNS0zNS41di0xNTEuOGM0Ny4zLTMyLjcgOTMuNi02NC44IDEzOS40LTk3LjdMODQgMzE4LjNWNDEzeiIvPjwvc3ZnPg==" alt="Digital Pharmacy Icon">
+<nav class="navbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-success" href="#">
+            <i class="bi bi-capsule me-2"></i>E-PHARMA
+        </a>
+        <div class="d-none d-md-flex">
+            <a href="#" class="nav-link">Buy Medicines</a>
+            <a href="#" class="nav-link">Find Doctors</a>
+            <a href="#" class="nav-link">Lab Tests</a>
+            <a href="#" class="nav-link">Health Records</a>
+        </div>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="me-3 small text-muted d-none d-lg-inline">Welcome, <strong>Anushka</strong></span>
+            <a href="logout.php" class="btn btn-outline-danger btn-sm rounded-pill px-3">Logout</a>
+        </div>
     </div>
-    
-    <h2 class="login-title">Pharmacy Login</h2>
-    <p class="subtitle">Welcome back! Access your professional healthcare portal.</p>
-    
-    <?php if(!empty($error_msg)): ?>
-        <div class="alert alert-danger text-center py-2" style="font-size: 0.85rem;">
-            <?php echo $error_msg; ?>
-        </div>
-    <?php endif; ?>
+</nav>
 
-    <form method="POST" action="">
-        <div class="mb-3">
-            <input type="email" name="email" class="form-control" placeholder="example@gmail.com" required>
+<div class="hero-banner">
+    <div class="container text-center">
+        <h1 class="display-6 fw-bold">Buy Medicines and Essentials</h1>
+        <p class="opacity-75">Get 20%* off on your first order. Delivered within 60 mins.</p>
+        <div class="row justify-content-center">
+            <div class="col-md-7">
+                <div class="search-box d-flex">
+                    <input type="text" class="form-control border-0 px-4" placeholder="Search Medicines, Health Products...">
+                    <button class="btn btn-success px-4 fw-bold rounded-3" style="background: var(--brand-green);">Search</button>
+                </div>
+            </div>
         </div>
-        <div class="mb-4">
-            <input type="password" name="password" class="form-control" placeholder="••••••••••••" required>
-        </div>
-        
-        <button type="submit" name="login" class="btn btn-login">Login to System</button>
-    </form>
+    </div>
+</div>
 
-    <div class="footer-text">
-        Don't have an account? <a href="register.php">Create Account</a>
+<div class="container mt-4">
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <a href="medicines.php" class="service-card">
+                <div class="icon-box bg-success-subtle text-success"><i class="bi bi-bag-plus"></i></div>
+                <h5 class="fw-bold">Buy Medicines</h5>
+                <p class="text-muted small">Flat 20% OFF on all prescription drugs.</p>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="#" class="service-card">
+                <div class="icon-box bg-primary-subtle text-primary"><i class="bi bi-person-video3"></i></div>
+                <h5 class="fw-bold">Find Doctors</h5>
+                <p class="text-muted small">Consult top specialists via video call.</p>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="#" class="service-card">
+                <div class="icon-box bg-danger-subtle text-danger"><i class="bi bi-microscope"></i></div>
+                <h5 class="fw-bold">Lab Tests</h5>
+                <p class="text-muted small">Sample collection from your home.</p>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="#" class="service-card">
+                <div class="icon-box bg-warning-subtle text-warning"><i class="bi bi-heart-pulse"></i></div>
+                <h5 class="fw-bold">Health Insurance</h5>
+                <p class="text-muted small">Secure your family with premium plans.</p>
+            </a>
+        </div>
+    </div>
+
+    <h4 class="section-title">Browse by Health Conditions</h4>
+    <div class="row g-3 mb-5">
+        <?php 
+        $conditions = [
+            ['Diabetes Care', 'bi-droplet', '65% off'],
+            ['Cardiac Care', 'bi-heart', 'Upto 40% off'],
+            ['Stomach Care', 'bi-activity', 'Upto 30% off'],
+            ['Pain Relief', 'bi-bandaid', 'Flat 20% off'],
+            ['Personal Care', 'bi-person', 'Upto 80% off'],
+            ['Summer Store', 'bi-sun', 'Best Sellers']
+        ];
+        foreach($conditions as $c) { ?>
+        <div class="col-md-4 col-lg-2">
+            <div class="cat-item">
+                <i class="bi <?php echo $c[1]; ?> h4 text-success d-block mb-2"></i>
+                <h6 class="fw-bold mb-1 small"><?php echo $c[0]; ?></h6>
+                <span class="text-success fw-bold" style="font-size: 0.75rem;"><?php echo $c[2]; ?></span>
+            </div>
+        </div>
+        <?php } ?>
     </div>
 </div>
 
